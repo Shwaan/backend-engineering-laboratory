@@ -1,8 +1,8 @@
 import { transporter } from "../../utils/emailServices";
+import { buildVerificationEmail } from "../../utils/emailTemplate";
 import { normalizeEmail } from "../../utils/normalizeEmail";
 import { hashPassword } from "../../utils/password";
 import { generateVerificationCode } from "../../utils/verificationCode";
-import { buildVerificationEmail } from "../../utils/emailTemplate";
 import { env } from "../config/env";
 import { AppError } from "../errors/AppError";
 import { db } from "../prisma/db";
@@ -47,7 +47,7 @@ export const authService = {
 
         const hashedPassword = hashPassword(password)
 
-        // ToDo: Generate verification code.
+        // Generate and send verification code.
         const verificationCode = generateVerificationCode()
         const emailContent = buildVerificationEmail({
             name,
@@ -69,7 +69,6 @@ export const authService = {
         }
 
         // ToDo: Store pending registration.
-        // ToDo: Deliver verification email.
 
         return {
             "message": "User created successfully.",
