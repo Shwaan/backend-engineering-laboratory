@@ -1,8 +1,9 @@
+import { Temporal } from "@js-temporal/polyfill";
 import { transporter } from "../../utils/emailServices";
 import { buildVerificationEmail } from "../../utils/emailTemplate";
 import { normalizeEmail } from "../../utils/normalizeEmail";
 import { hashPassword } from "../../utils/password";
-import { generateVerificationCode } from "../../utils/verificationCode";
+import { generateVerificationCode, hashVerificationCode } from "../../utils/verificationCode";
 import { env } from "../config/env";
 import { AppError } from "../errors/AppError";
 import { db } from "../prisma/db";
@@ -41,14 +42,32 @@ export const authService = {
             );
         }
 
+        // Generate and send verification code.
+        const verificationCode = generateVerificationCode()
+        const verificationCodeHash = hashVerificationCode(verificationCode, normalizedEmail)
+        const expiresAt = Temporal.Now.instant().add({ hours: 12 })
+
+        // Store pending registration.
         const pendingRegistration = await db.orm.public.PendingRegistration
             .where({ normalizedEmail })
             .first()
 
-        const hashedPassword = hashPassword(password)
+        if (pendingRegistration) {
+            throw new AppError(
+                409,
+                "REGISTRATION_PENDING",
+                "Verificaiton Pending for this email."
+            )
+        }
 
-        // Generate and send verification code.
-        const verificationCode = generateVerificationCode()
+        const passwordHash = await hashPassword(password)
+
+        const pendingUsers = await db.orm.public.PendingRegistration.create({
+            name, email, normalizedEmail, passwordHash, verificationCodeHash, expiresAt
+        })
+
+        console.log("Pending User:", pendingUsers)
+
         const emailContent = buildVerificationEmail({
             name,
             verificationCode,
@@ -67,8 +86,6 @@ export const authService = {
         } catch (err) {
             console.error("Verification failed:", err);
         }
-
-        // ToDo: Store pending registration.
 
         return {
             "message": "User created successfully.",

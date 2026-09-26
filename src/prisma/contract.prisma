@@ -83,7 +83,7 @@ model Contact {
   displayName           String
   normalizedDisplayName String
   createdAt             DateTime @default(now())
-  updatedAt             temporal.updatedAt()
+  updatedAt             temporal.updatedAtString()
 
   user User @relation(
     fields: [userId],
@@ -105,7 +105,7 @@ model ContactPhone {
   phone           String
   normalizedPhone String
   createdAt       DateTime @default(now())
-  updatedAt       temporal.updatedAt()
+  updatedAt       temporal.updatedAtString()
 
   contact Contact @relation(
     fields: [contactId, userId],
@@ -123,7 +123,7 @@ model ContactEmail {
   email           String
   normalizedEmail String
   createdAt       DateTime @default(now())
-  updatedAt       temporal.updatedAt()
+  updatedAt       temporal.updatedAtString()
 
   contact Contact @relation(
     fields: [contactId, userId],

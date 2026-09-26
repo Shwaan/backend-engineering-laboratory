@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/Siuubedi/express#readme",
   "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
     "@prisma/orm-postgres": "^8.0.0-rc.8",
     "argon2": "^0.45.1",
     "dotenv": "^17.4.2",

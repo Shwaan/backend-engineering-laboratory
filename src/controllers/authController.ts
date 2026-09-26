@@ -11,7 +11,6 @@ export const checkEmailAvailability = async (req: Request, res: Response) => {
 
 export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password } = req.body
-    console.log("Req body:", name, email, password)
 
     const result = await authService.registerUser(name, email, password)
 

@@ -6,3 +6,7 @@ dist/
 /src/prisma/testDb.ts
 coverage/
 .vitest/
+/.agents
+/.claude
+/.cursor
+/.devin

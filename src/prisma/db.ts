@@ -1,7 +1,8 @@
 import postgres from '@prisma/orm-postgres/runtime';
+import { env } from '../config/env';
+import "../config/temporal";
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
-import { env } from '../config/env';
 
 export const db = postgres<Contract>({
   contractJson,
