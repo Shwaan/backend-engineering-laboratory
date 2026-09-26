@@ -1,0 +1,248 @@
+[
+  {
+    "id": "table.expiredRegistration",
+    "label": "Create table \"expiredRegistration\"",
+    "summary": "Creates table \"expiredRegistration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "expiredRegistration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"expiredRegistration\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"expiredRegistration\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"expiredRegistration\"",
+        "sql": "CREATE TABLE \"public\".\"expiredRegistration\" (\n  \"email\" text NOT NULL,\n  \"expiredAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" uuid NOT NULL,\n  \"name\" text NOT NULL,\n  \"normalizedEmail\" text NOT NULL,\n  \"registeredAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"expiredRegistration\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"expiredRegistration\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.pendingRegistration.lastCodeIssuedAt",
+    "label": "Add column \"lastCodeIssuedAt\" to \"pendingRegistration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastCodeIssuedAt",
+        "table": "pendingRegistration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastCodeIssuedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "lastCodeIssuedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastCodeIssuedAt\"",
+        "sql": "ALTER TABLE \"public\".\"pendingRegistration\" ADD COLUMN \"lastCodeIssuedAt\" timestamptz DEFAULT (now()) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastCodeIssuedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "lastCodeIssuedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.pendingRegistration.lockedUntil",
+    "label": "Add column \"lockedUntil\" to \"pendingRegistration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lockedUntil",
+        "table": "pendingRegistration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lockedUntil\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "lockedUntil"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lockedUntil\"",
+        "sql": "ALTER TABLE \"public\".\"pendingRegistration\" ADD COLUMN \"lockedUntil\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lockedUntil\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "lockedUntil"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.pendingRegistration.resendCount",
+    "label": "Add column \"resendCount\" to \"pendingRegistration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "resendCount",
+        "table": "pendingRegistration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"resendCount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "resendCount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"resendCount\"",
+        "sql": "ALTER TABLE \"public\".\"pendingRegistration\" ADD COLUMN \"resendCount\" int4 DEFAULT 0 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"resendCount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "resendCount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.pendingRegistration.resendWindowStartedAt",
+    "label": "Add column \"resendWindowStartedAt\" to \"pendingRegistration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "resendWindowStartedAt",
+        "table": "pendingRegistration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"resendWindowStartedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "resendWindowStartedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"resendWindowStartedAt\"",
+        "sql": "ALTER TABLE \"public\".\"pendingRegistration\" ADD COLUMN \"resendWindowStartedAt\" timestamptz DEFAULT (now()) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"resendWindowStartedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendingRegistration",
+          "resendWindowStartedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.expiredRegistration.expiredRegistration_normalizedEmail_idx_8a5fd4dd",
+    "label": "Create index \"expiredRegistration_normalizedEmail_idx_8a5fd4dd\" on \"expiredRegistration\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "expiredRegistration_normalizedEmail_idx_8a5fd4dd",
+        "table": "expiredRegistration"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"expiredRegistration_normalizedEmail_idx_8a5fd4dd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"expiredRegistration_normalizedEmail_idx_8a5fd4dd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"expiredRegistration_normalizedEmail_idx_8a5fd4dd\"",
+        "sql": "CREATE INDEX \"expiredRegistration_normalizedEmail_idx_8a5fd4dd\" ON \"public\".\"expiredRegistration\" (\"normalizedEmail\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"expiredRegistration_normalizedEmail_idx_8a5fd4dd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"expiredRegistration_normalizedEmail_idx_8a5fd4dd\""
+        ]
+      }
+    ]
+  }
+]

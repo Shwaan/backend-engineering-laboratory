@@ -52,10 +52,29 @@ model PendingRegistration {
   normalizedEmail      String   @unique
   passwordHash         String
   verificationCodeHash String
+
   expiresAt            DateTime
   attemptCount         Int      @default(0)
+
+  lastCodeIssuedAt      DateTime @default(now())
+  resendCount           Int      @default(0)
+  resendWindowStartedAt DateTime @default(now())
+  lockedUntil           DateTime?
+
   createdAt            DateTime @default(now())
   updatedAt            temporal.updatedAt()
+}
+
+model ExpiredRegistration {
+  id              Uuid     @id @default(uuid())
+  name            String
+  email           String
+  normalizedEmail String
+
+  registeredAt    DateTime
+  expiredAt       DateTime @default(now())
+
+  @@index([normalizedEmail])
 }
 
 model Contact {

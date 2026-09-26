@@ -16,6 +16,10 @@
       "model": "ContactPhone",
       "namespace": "public"
     },
+    "expiredRegistration": {
+      "model": "ExpiredRegistration",
+      "namespace": "public"
+    },
     "oAuthAccount": {
       "model": "OAuthAccount",
       "namespace": "public"
@@ -356,6 +360,77 @@
               "table": "contactPhone"
             }
           },
+          "ExpiredRegistration": {
+            "fields": {
+              "email": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiredAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "normalizedEmail": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "registeredAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "email": {
+                  "column": "email"
+                },
+                "expiredAt": {
+                  "column": "expiredAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "normalizedEmail": {
+                  "column": "normalizedEmail"
+                },
+                "registeredAt": {
+                  "column": "registeredAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "expiredRegistration"
+            }
+          },
           "OAuthAccount": {
             "fields": {
               "createdAt": {
@@ -517,6 +592,20 @@
                   "kind": "scalar"
                 }
               },
+              "lastCodeIssuedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "lockedUntil": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
               "name": {
                 "nullable": false,
                 "type": {
@@ -535,6 +624,20 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "resendCount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "resendWindowStartedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
                   "kind": "scalar"
                 }
               },
@@ -571,6 +674,12 @@
                 "id": {
                   "column": "id"
                 },
+                "lastCodeIssuedAt": {
+                  "column": "lastCodeIssuedAt"
+                },
+                "lockedUntil": {
+                  "column": "lockedUntil"
+                },
                 "name": {
                   "column": "name"
                 },
@@ -579,6 +688,12 @@
                 },
                 "passwordHash": {
                   "column": "passwordHash"
+                },
+                "resendCount": {
+                  "column": "resendCount"
+                },
+                "resendWindowStartedAt": {
+                  "column": "resendWindowStartedAt"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -999,6 +1114,61 @@
                 }
               ]
             },
+            "expiredRegistration": {
+              "columns": {
+                "email": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "expiredAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "normalizedEmail": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "registeredAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "normalizedEmail"
+                  ],
+                  "name": "expiredRegistration_normalizedEmail_idx_8a5fd4dd",
+                  "prefix": "expiredRegistration_normalizedEmail_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "oAuthAccount": {
               "columns": {
                 "createdAt": {
@@ -1155,6 +1325,20 @@
                   "nativeType": "uuid",
                   "nullable": false
                 },
+                "lastCodeIssuedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "lockedUntil": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
                 "name": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -1168,6 +1352,24 @@
                 "passwordHash": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
+                  "nullable": false
+                },
+                "resendCount": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "resendWindowStartedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
                   "nullable": false
                 },
                 "updatedAt": {
@@ -1269,10 +1471,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3d3c075c3f11564378f69b52478b5e87891eeb7d46513ad361a2f723b0cbca33"
+    "storageHash": "03beaa8902f55fb8f0a1d1d8439cbf1cf888a4ea2a703e8b6ea25568d09aa223"
   },
   "execution": {
-    "executionHash": "7784d28517f6ce2533f78e76d17fe2c06a07c14707f5003ad95e0de41ca5c414",
+    "executionHash": "0b0228ff1b8d06b6e701e328084b60c87fa3a8412db9d9e36015151e6fbc84f2",
     "mutations": {
       "defaults": [
         {
@@ -1351,6 +1553,17 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "contactPhone"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "expiredRegistration"
           }
         },
         {
