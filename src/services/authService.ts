@@ -1,7 +1,12 @@
-import { hashPassword } from "../../utils/password";
+import { transporter } from "../../utils/emailServices";
 import { normalizeEmail } from "../../utils/normalizeEmail";
+import { hashPassword } from "../../utils/password";
+import { generateVerificationCode } from "../../utils/verificationCode";
+import { buildVerificationEmail } from "../../utils/emailTemplate";
+import { env } from "../config/env";
 import { AppError } from "../errors/AppError";
 import { db } from "../prisma/db";
+
 
 export const authService = {
     async checkEmailAvailability(email: string) {
@@ -43,6 +48,26 @@ export const authService = {
         const hashedPassword = hashPassword(password)
 
         // ToDo: Generate verification code.
+        const verificationCode = generateVerificationCode()
+        const emailContent = buildVerificationEmail({
+            name,
+            verificationCode,
+        })
+        try {
+            await transporter.sendMail({
+                from: `"Random Subedi" <${env.SMTP_USER}>`,
+                to: email,
+                subject: emailContent.subject,
+                text: emailContent.text,
+                html: emailContent.html,
+            });
+
+            console.log("Message Sent succesfully.")
+            // console.log("Info: ", info)
+        } catch (err) {
+            console.error("Verification failed:", err);
+        }
+
         // ToDo: Store pending registration.
         // ToDo: Deliver verification email.
 

@@ -11,6 +11,12 @@ const envSchema = z.object({
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required.'),
     DIRECT_URL: z.string().min(1, 'DIRECT_URL is required.'),
     OTP_HMAC_SECRET: z.string().regex(/^[0-9a-fA-F]{64}$/),
+    SMTP_HOST: z.string().min(1),
+    SMTP_PORT: z.coerce.number().int().min(1),
+    SMTP_USER: z.string().trim().pipe(
+        z.email("Invalid email address")
+    ),
+    SMTP_PASS: z.string().length(16, "Must be exactly 16 characters long.")
 })
 
 const result = envSchema.safeParse(process.env)
