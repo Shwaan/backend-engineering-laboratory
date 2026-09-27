@@ -45,7 +45,7 @@ export const authService = {
         // Generate and send verification code.
         const verificationCode = generateVerificationCode()
         const verificationCodeHash = hashVerificationCode(verificationCode, normalizedEmail)
-        const expiresAt = Temporal.Now.instant().add({ hours: 12 })
+        const expiresAt = Temporal.Now.instant().add({ minutes: 10 })
 
         // Store pending registration.
         const pendingRegistration = await db.orm.public.PendingRegistration

@@ -16,7 +16,8 @@ const envSchema = z.object({
     SMTP_USER: z.string().trim().pipe(
         z.email("Invalid email address")
     ),
-    SMTP_PASS: z.string().length(16, "Must be exactly 16 characters long.")
+    SMTP_PASS: z.string().length(16, "Must be exactly 16 characters long."),
+    REDIS_URL: z.string().min(1, "REDIS_URL is required"),
 })
 
 const result = envSchema.safeParse(process.env)
