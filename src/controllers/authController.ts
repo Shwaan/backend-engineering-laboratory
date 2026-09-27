@@ -9,6 +9,10 @@ export const checkEmailAvailability = async (req: Request, res: Response) => {
     return res.status(200).json(result)
 }
 
+export const verifyEmail = async (req: Request, res: Response) => {
+
+}
+
 export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password } = req.body
 

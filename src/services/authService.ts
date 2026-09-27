@@ -42,10 +42,10 @@ export const authService = {
         const verificationCodeHash = hashVerificationCode(verificationCode, normalizedEmail)
         const passwordHash = await hashPassword(password)
 
-        const pendingRegistration = { name, email, normalizedEmail, passwordHash, verificationCodeHash }
+        const registrationData = { name, email, normalizedEmail, passwordHash, verificationCodeHash }
 
         // Get pending registrationId.
-        const registrationId = await createPendingRegistration(pendingRegistration)
+        const registrationId = await createPendingRegistration(registrationData)
 
         // Send email
         try {
@@ -72,7 +72,7 @@ export const authService = {
             throw new AppError(
                 500,
                 "VERIFICATION_EMAIL_FAILED",
-                "Unable to send verification email."
+                "Unable to send verification code."
             );
         }
     }
