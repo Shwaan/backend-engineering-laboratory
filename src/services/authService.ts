@@ -1,4 +1,3 @@
-import { Temporal } from "@js-temporal/polyfill";
 import { transporter } from "../../utils/emailServices";
 import { buildVerificationEmail } from "../../utils/emailTemplate";
 import { normalizeEmail } from "../../utils/normalizeEmail";
@@ -7,7 +6,7 @@ import { generateVerificationCode, hashVerificationCode } from "../../utils/veri
 import { env } from "../config/env";
 import { AppError } from "../errors/AppError";
 import { db } from "../prisma/db";
-
+import { createPendingRegistration, deletePendingRegistration } from "../redis/pendingRegistration";
 
 export const authService = {
     async checkEmailAvailability(email: string) {
@@ -17,12 +16,8 @@ export const authService = {
             .where({ normalizedEmail })
             .first()
 
-        const pendingRegistration = await db.orm.public.PendingRegistration
-            .where({ normalizedEmail })
-            .first()
-
         return {
-            available: !user && !pendingRegistration
+            available: !user
         }
     },
 
@@ -45,34 +40,20 @@ export const authService = {
         // Generate and send verification code.
         const verificationCode = generateVerificationCode()
         const verificationCodeHash = hashVerificationCode(verificationCode, normalizedEmail)
-        const expiresAt = Temporal.Now.instant().add({ minutes: 10 })
-
-        // Store pending registration.
-        const pendingRegistration = await db.orm.public.PendingRegistration
-            .where({ normalizedEmail })
-            .first()
-
-        if (pendingRegistration) {
-            throw new AppError(
-                409,
-                "REGISTRATION_PENDING",
-                "Verificaiton Pending for this email."
-            )
-        }
-
         const passwordHash = await hashPassword(password)
 
-        const pendingUsers = await db.orm.public.PendingRegistration.create({
-            name, email, normalizedEmail, passwordHash, verificationCodeHash, expiresAt
-        })
+        const pendingRegistration = { name, email, normalizedEmail, passwordHash, verificationCodeHash }
 
-        console.log("Pending User:", pendingUsers)
+        // Get pending registrationId.
+        const registrationId = await createPendingRegistration(pendingRegistration)
 
-        const emailContent = buildVerificationEmail({
-            name,
-            verificationCode,
-        })
+        // Send email
         try {
+            const emailContent = buildVerificationEmail({
+                name,
+                verificationCode,
+            })
+
             await transporter.sendMail({
                 from: `"Random Subedi" <${env.SMTP_USER}>`,
                 to: email,
@@ -81,14 +62,18 @@ export const authService = {
                 html: emailContent.html,
             });
 
-            console.log("Message Sent succesfully.")
-            // console.log("Info: ", info)
+            return {
+                message: "Verification code sent.",
+                registrationId,
+            };
         } catch (err) {
-            console.error("Verification failed:", err);
-        }
+            await deletePendingRegistration(registrationId)
 
-        return {
-            "message": "User created successfully.",
+            throw new AppError(
+                500,
+                "VERIFICATION_EMAIL_FAILED",
+                "Unable to send verification email."
+            );
         }
     }
 }
