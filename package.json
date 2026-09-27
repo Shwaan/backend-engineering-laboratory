@@ -5,8 +5,8 @@
   "description": "This is where I am revising the concepts of expressjs",
   "main": "app.ts",
   "scripts": {
-    "dev": "tsx watch src/app.ts",
-    "start": "tsx src/app.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "contract:emit": "prisma contract emit",
     "test": "vitest run",

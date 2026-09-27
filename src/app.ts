@@ -1,12 +1,13 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
-import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
 import { routeNotFound } from "./middleware/routeNotFound";
 import authRoute from "./routes/authRoute";
 import contactRouter from "./routes/contactRoutes";
-const PORT = env.PORT
-const app = express();
+
+export const app = express();
+
+app.use(express.json());
 
 app.get("/json", (req: Request, res: Response) => {
     res.status(200).json(
@@ -17,7 +18,6 @@ app.get("/json", (req: Request, res: Response) => {
     )
 })
 
-app.use(express.json());
 app.use("/api/contacts", contactRouter);
 app.use("/api/auth", authRoute)
 
@@ -26,7 +26,3 @@ app.use(routeNotFound)
 
 // Error handler must come after routes
 app.use(errorHandler)
-
-app.listen(PORT, () => {
-    console.log(`Server is running on ${PORT}`);
-})
