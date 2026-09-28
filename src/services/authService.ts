@@ -9,19 +9,18 @@ import { db } from "../prisma/db";
 import { createPendingRegistration, deletePendingRegistration, getPendingRegistration } from "../redis/pendingRegistration";
 
 const checkExistingUser = async (normalizedEmail: string): Promise<boolean> => {
-    const existingUser = await db.orm.public.User
-        .where({ normalizedEmail })
-        .first()
-
-    return Boolean(existingUser)
+    return Boolean(
+        await db.orm.public.User
+            .where({ normalizedEmail })
+            .first()
+    )
 }
 
 export const authService = {
     async checkEmailAvailability(email: string) {
         const normalizedEmail = normalizeEmail(email)
 
-        const existingUser =
-            await checkExistingUser(normalizedEmail)
+        const existingUser = await checkExistingUser(normalizedEmail)
 
         return {
             available: !existingUser
@@ -47,7 +46,13 @@ export const authService = {
         const verificationCodeHash = hashVerificationCode(verificationCode, normalizedEmail)
         const passwordHash = await hashPassword(password)
 
-        const registrationData = { name, email, normalizedEmail, passwordHash, verificationCodeHash }
+        const registrationData = {
+            name,
+            email,
+            normalizedEmail,
+            passwordHash,
+            verificationCodeHash
+        }
 
         // Get pending registrationId.
         const registrationId = await createPendingRegistration(registrationData)
@@ -93,26 +98,28 @@ export const authService = {
             )
         }
 
-        //Check if the user already exists
-        const existingUser = await checkExistingUser(pendingRegistration.normalizedEmail)
-
-        if (existingUser) {
-            throw new AppError(
-                409,
-                "EMAIL_ALREADY_EXISTS",
-                "An account with this email already exists."
-            );
-        }
-
         // Check if the code is valid or not
         const isCodeValid = verifyVerificationCode(code, pendingRegistration.normalizedEmail, pendingRegistration.verificationCodeHash)
 
         if (!isCodeValid) {
             throw new AppError(
-                500,
-                "INVALID_VERIFICATION_DATA",
+                400,
+                "INVALID_VERIFICATION_CODE",
                 "Invalid verification code."
             )
+        }
+
+        //Check if the user already exists
+        const existingUser = await checkExistingUser(pendingRegistration.normalizedEmail)
+
+        if (existingUser) {
+            await deletePendingRegistration(registrationId)
+
+            throw new AppError(
+                409,
+                "EMAIL_ALREADY_EXISTS",
+                "An account with this email already exists."
+            );
         }
 
         // Create User + PasswordCredential
