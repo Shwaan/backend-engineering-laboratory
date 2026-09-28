@@ -2,11 +2,11 @@ import { transporter } from "../../utils/emailServices";
 import { buildVerificationEmail } from "../../utils/emailTemplate";
 import { normalizeEmail } from "../../utils/normalizeEmail";
 import { hashPassword } from "../../utils/password";
-import { generateVerificationCode, hashVerificationCode } from "../../utils/verificationCode";
+import { generateVerificationCode, hashVerificationCode, verifyVerificationCode } from "../../utils/verificationCode";
 import { env } from "../config/env";
 import { AppError } from "../errors/AppError";
 import { db } from "../prisma/db";
-import { createPendingRegistration, deletePendingRegistration } from "../redis/pendingRegistration";
+import { createPendingRegistration, deletePendingRegistration, getPendingRegistration } from "../redis/pendingRegistration";
 
 export const authService = {
     async checkEmailAvailability(email: string) {
@@ -75,5 +75,66 @@ export const authService = {
                 "Unable to send verification code."
             );
         }
+    },
+
+    async completeRegistration(registrationId: string, code: string) {
+        const pendingRegistration = await getPendingRegistration(registrationId)
+
+        if (!pendingRegistration) {
+            throw new AppError(
+                404,
+                "INVALID_VERIFICATION_DATA",
+                "Invalid verification code."
+            )
+        }
+
+        //Check if the user already exists
+        const existingUser = await db.orm.public.User
+            .where({ normalizedEmail: pendingRegistration.normalizedEmail })
+            .first()
+
+        if (existingUser) {
+            throw new AppError(
+                409,
+                "EMAIL_ALREADY_EXISTS",
+                "An account with this email already exists."
+            );
+        }
+
+        // Check if the code is valid or not
+        const isCodeValid = verifyVerificationCode(code, pendingRegistration.normalizedEmail, pendingRegistration.verificationCodeHash)
+
+        if (!isCodeValid) {
+            throw new AppError(
+                500,
+                "INVALID_CODE",
+                "Invalid Code."
+            )
+        }
+
+        // Create User + PasswordCredential
+        const user = await db.transaction(async (tx) => {
+            const createdUser = await tx.orm.public.User.create({
+                name: pendingRegistration.name,
+                email: pendingRegistration.email,
+                normalizedEmail: pendingRegistration.normalizedEmail
+            })
+
+            await tx.orm.public.PasswordCredential.create({
+                userId: createdUser.id,
+                passwordHash: pendingRegistration.passwordHash,
+            })
+
+            return createdUser
+        })
+
+        // Delete data from redis
+        await deletePendingRegistration(registrationId)
+
+        return {
+            message: "Registration completed successfully.",
+            userId: user.id
+        }
+
     }
 }

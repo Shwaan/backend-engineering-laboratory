@@ -10,7 +10,10 @@ export const checkEmailAvailability = async (req: Request, res: Response) => {
 }
 
 export const verifyEmail = async (req: Request, res: Response) => {
+    const { registrationId, code } = req.body
+    const result = await authService.completeRegistration(registrationId, code)
 
+    return res.status(201).json(result)
 }
 
 export const registerUser = async (req: Request, res: Response) => {
