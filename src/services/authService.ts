@@ -8,26 +8,31 @@ import { AppError } from "../errors/AppError";
 import { db } from "../prisma/db";
 import { createPendingRegistration, deletePendingRegistration, getPendingRegistration } from "../redis/pendingRegistration";
 
+const checkExistingUser = async (normalizedEmail: string): Promise<boolean> => {
+    const existingUser = await db.orm.public.User
+        .where({ normalizedEmail })
+        .first()
+
+    return Boolean(existingUser)
+}
+
 export const authService = {
     async checkEmailAvailability(email: string) {
         const normalizedEmail = normalizeEmail(email)
 
-        const user = await db.orm.public.User
-            .where({ normalizedEmail })
-            .first()
+        const existingUser =
+            await checkExistingUser(normalizedEmail)
 
         return {
-            available: !user
+            available: !existingUser
         }
     },
 
-    async registerUser(name: string, email: string, password: string) {
+    async startRegistration(name: string, email: string, password: string) {
         const normalizedEmail = normalizeEmail(email)
 
         // Check if the verified account exists.
-        const existingUser = await db.orm.public.User
-            .where({ normalizedEmail })
-            .first()
+        const existingUser = await checkExistingUser(normalizedEmail)
 
         if (existingUser) {
             throw new AppError(
@@ -82,16 +87,14 @@ export const authService = {
 
         if (!pendingRegistration) {
             throw new AppError(
-                404,
-                "INVALID_VERIFICATION_DATA",
-                "Invalid verification code."
+                410,
+                "REGISTRATION_EXPIRED",
+                "Registration has expired or is invalid."
             )
         }
 
         //Check if the user already exists
-        const existingUser = await db.orm.public.User
-            .where({ normalizedEmail: pendingRegistration.normalizedEmail })
-            .first()
+        const existingUser = await checkExistingUser(pendingRegistration.normalizedEmail)
 
         if (existingUser) {
             throw new AppError(
@@ -107,8 +110,8 @@ export const authService = {
         if (!isCodeValid) {
             throw new AppError(
                 500,
-                "INVALID_CODE",
-                "Invalid Code."
+                "INVALID_VERIFICATION_DATA",
+                "Invalid verification code."
             )
         }
 
@@ -135,6 +138,5 @@ export const authService = {
             message: "Registration completed successfully.",
             userId: user.id
         }
-
     }
 }

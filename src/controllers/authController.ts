@@ -19,7 +19,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password } = req.body
 
-    const result = await authService.registerUser(name, email, password)
+    const result = await authService.startRegistration(name, email, password)
 
     return res.status(200).json(result)
 }
