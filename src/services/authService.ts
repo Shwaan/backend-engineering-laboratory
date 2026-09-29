@@ -1,7 +1,7 @@
 import { transporter } from "../../utils/emailServices";
 import { buildVerificationEmail } from "../../utils/emailTemplate";
 import { normalizeEmail } from "../../utils/normalizeEmail";
-import { hashPassword } from "../../utils/password";
+import { hashPassword, verifyPassword } from "../../utils/password";
 import { generateVerificationCode, hashVerificationCode, verifyVerificationCode } from "../../utils/verificationCode";
 import { env } from "../config/env";
 import { AppError } from "../errors/AppError";
@@ -127,7 +127,7 @@ export const authService = {
             const createdUser = await tx.orm.public.User.create({
                 name: pendingRegistration.name,
                 email: pendingRegistration.email,
-                normalizedEmail: pendingRegistration.normalizedEmail
+                normalizedEmail: pendingRegistration.normalizedEmail,
             })
 
             await tx.orm.public.PasswordCredential.create({
@@ -144,6 +144,37 @@ export const authService = {
         return {
             message: "Registration completed successfully.",
             userId: user.id
+        }
+    },
+
+    async loginUser(email: string, password: string) {
+        const normalizedEmail = normalizeEmail(email)
+
+        const user = await db.orm.public.User
+            .select("id", "name", "email")
+            .include("passwordCredential", credential => credential.select("passwordHash"))
+            .where({ normalizedEmail })
+            .first()
+
+        const hash = user?.passwordCredential?.passwordHash ?? env.AUTH_DUMMY_PASSWORD_HASH
+
+        const isPasswordCorrect = await verifyPassword(hash, password)
+
+        if (!user?.passwordCredential || !isPasswordCorrect) {
+            throw new AppError(
+                401,
+                "INVALID_CREDENTIALS",
+                "Invalid email or password."
+            )
+        }
+
+        return {
+            message: "Login successful.",
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
         }
     }
 }

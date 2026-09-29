@@ -20,6 +20,14 @@ export const verifyEmailSchema = z.object({
         .regex(/^\d{6}$/, "Verification code must contain exactly 6 digits")
 })
 
+export const loginUserSchema = z.object({
+    email: z.string().trim().pipe(
+        z.email("Invalid email address")
+    ),
+    password: z.string().min(8, "Password must be at least 8 characters.")
+})
+
 export type EmailAvailabilityInput = z.infer<typeof emailAvailabilitySchema>
 export type RegisterInput = z.infer<typeof registerUserSchema>
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>
+export type LoginInput = z.infer<typeof loginUserSchema>

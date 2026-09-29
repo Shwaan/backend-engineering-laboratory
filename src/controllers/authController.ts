@@ -23,3 +23,11 @@ export const registerUser = async (req: Request, res: Response) => {
 
     return res.status(200).json(result)
 }
+
+export const loginUser = async (req: Request, res: Response) => {
+    const { email, password } = req.body
+
+    const result = await authService.loginUser(email, password)
+
+    return res.status(200).json(result)
+}

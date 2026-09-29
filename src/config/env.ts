@@ -18,6 +18,7 @@ const envSchema = z.object({
     ),
     SMTP_PASS: z.string().length(16, "Must be exactly 16 characters long."),
     REDIS_URL: z.string().min(1, "REDIS_URL is required"),
+    AUTH_DUMMY_PASSWORD_HASH: z.string().startsWith("$argon2id$"),
 })
 
 const result = envSchema.safeParse(process.env)
